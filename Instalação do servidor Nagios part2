@@ -1,0 +1,18 @@
+Para habilitar comandos externos no Nagios, edite o arquivo (dependendo da instalação):
+
+nano nano /usr/local/nagios/etc/nagios.cfg 
+
+Alterar a linha:
+
+    check_external_commands=0  //desabilitado 
+
+
+Para:
+
+	check_external_commands=1  // habilitado
+
+Adicionar o www-data ao grupo nagios:
+
+nano /etc/group
+
+nagios:x:127:www-data 
