@@ -1,0 +1,130 @@
+Instalação de pacotes para a pré-configuração:
+
+apt-get install autoconf gcc libc6 build-essential bc gawk dc gettext libmcrypt-dev libssl-dev make unzip apache2 apache2-utils php5 libgd2-xpm-dev php7.0-gd libapache2-mod-php7.0
+
+Entre como usuário root:
+
+sudo su
+
+ou:
+
+su
+
+ou:
+
+sudo -s
+
+Agora é preciso criar uma conta para o acesso ao nagios:
+
+/usr/sbin/useradd -m -s /bin/bash nagios passwd nagios
+
+Além disso, será preciso criar o grupo "nagios" e a adição do usuário "nagios":
+
+usr/sbin/groupadd nagios
+/usr/sbin/usermod -G nagios nagios
+
+Para a interface web do nagios, será criado um grupo específico para isso e, também, a adição do usuário "nagios":
+
+/usr/sbin/groupadd nagcmd
+/usr/sbin/usermod -a -G nagcmd nagios
+/usr/sbin/usermod -a -G nagcmd www-data
+
+Agora, vamos ao download do Nagios. Ainda no terminal logado como root e na pasta do diretório pessoal, faça os comandos:
+
+wget http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-4.2.4.tar.gz
+wget https://nagios-plugins.org/download/nagios-plugins-2.2.1.tar.gz
+
+Compilação e instalação do Nagios:
+
+tar xzf nagios-4.2.4.tar.gz
+cd nagios-4.2.4
+
+./configure --with-command-group=nagcmd --with-httpd-conf=/etc/apache2/sites-enabled
+
+make all
+
+Instalação de arquivos binários, configuração de exemplos, de permissões...:
+
+make install
+make install-init
+make install-config
+make install-commandmode
+update-rc.d nagios defaults
+
+Configuração da interface web:
+
+make install-webconf
+a2enmod rewrite
+a2enmod cgi
+
+Criação do usuário para acesso a interface web:
+
+htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+
+Configuração do apache2 com o firewall:
+
+ufw allow Apache
+ufw reload
+
+Configuração do nagios:
+
+tar xzf nagios-plugins-2.2.1.tar.gz
+cd nagios-plugins-2.2.1
+./configure
+make
+make install
+
+Iniciar o serviço Nagios:
+
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
+(se não ocorrer erros)
+
+systemctl start nagios.service
+
+Acessar a interface web:
+
+http://localhost/nagios/
+
+Acesse com o usuário "nagiosadmin" e a senha configurada.
+
+O NRPE é um serviço do nagios para monitoramento demáquinas host. Para mais informações acesse:
+http://nagios.sourceforge.net/docs/nrpe/NRPE.pdf
+
+Para a instalação do NRPE, faça o download do arquivo:
+
+wget https://sourceforge.net/projects/nagios/files/nrpe-3.x/nrpe-3.1.0.tar.gz
+
+Descompacte, faça a compilação e a instalação:
+
+tar xzf nrpe-3.1.0.tar.gz
+cd nrpe-nrpe-3.1.0
+./configure
+make all
+make install-groups-users
+
+make install
+make install-config
+make install-inetd
+make install-init
+
+Reinicie alguns serviços do sistema:
+
+service xinetd restart
+systemctl reload xinetd
+systemctl enable nrpe && systemctl start nrpe
+
+Depois verifique o processo rodando:
+
+netstat -at | egrep "nrpe|5666"
+
+Instale alguns plugins do NRPE:
+
+make check_nrpe
+make install-plugin
+
+Por enquanto é isso. Espero que você tenha sucesso. Bom trabalho!
+
+
+
+
